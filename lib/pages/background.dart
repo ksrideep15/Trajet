@@ -7,21 +7,25 @@ class Background extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(
-                0xFF004B5F), // Greenish teal color (adjust according to the image)
-            Colors.white, // White color for the bottom half
-          ],
-          stops: [0.5, 0.5], // Divides the screen into two equal parts
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFF004B5F), // Green at the top
+                Color.fromARGB(255, 228, 225, 225), // White at the bottom
+              ],
+              stops: [0.5, 0.5], // Equal split between green and white
+            ),
+          ),
         ),
-      ),
-      child:
-          child, // This will hold the content you want to place on top of the background
+        Positioned.fill(
+          child: child, // Scrollable content on top of static background
+        ),
+      ],
     );
   }
 }
