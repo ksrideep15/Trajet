@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:intl/intl.dart'; // date formatting
-import 'package:trajet/pages/signup_page.dart';
+import 'package:intl/intl.dart';
+import 'package:trajet/pages/view_trains_page.dart';
+import 'package:trajet/pages/login_page.dart';
 
 class SourceDestination extends StatefulWidget {
-  const SourceDestination({super.key});
+  final bool isLoggedIn;
+  const SourceDestination({super.key, required this.isLoggedIn});
 
   @override
   SourceDestinationState createState() => SourceDestinationState();
@@ -12,18 +14,16 @@ class SourceDestination extends StatefulWidget {
 
 class SourceDestinationState extends State<SourceDestination> {
   String source = 'MAR';
-  String destination = 'THVM'; //
-  String selectedDate = 'Select Date'; //
-  List<String> places = ['MAR', 'THVM', 'NDLS', 'CSTM', 'SBC']; // sample list
+  String destination = 'THVM';
+  String selectedDate = 'Select Date';
+  List<String> places = ['MAR', 'THVM', 'NDLS', 'CSTM', 'SBC'];
 
-  // Function to check if all fields are filled
   bool get _isFormValid {
     return source.isNotEmpty &&
         destination.isNotEmpty &&
         selectedDate != 'Select Date';
   }
 
-  // Function to display the source picker
   void _selectSource() {
     showModalBottomSheet(
       context: context,
@@ -54,7 +54,7 @@ class SourceDestinationState extends State<SourceDestination> {
           itemCount: places.length,
           itemBuilder: (BuildContext context, int index) {
             if (places[index] == source) {
-              return Container(); // Skip if same as source
+              return Container();
             }
             return ListTile(
               title: Text(places[index]),
@@ -71,19 +71,39 @@ class SourceDestinationState extends State<SourceDestination> {
     );
   }
 
-  //func to select only future date
   Future<void> _selectDate(BuildContext context) async {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime.now(), // only
-      lastDate: DateTime(2100), // Limit to a reasonable future date
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
     );
     if (picked != null && picked != DateTime.now()) {
       setState(() {
-        selectedDate = DateFormat('dd MMMM yyyy')
-            .format(picked); // Format the selected date
+        selectedDate = DateFormat('dd MMMM yyyy').format(picked);
       });
+    }
+  }
+
+  void _handleBookNow() {
+    if (widget.isLoggedIn) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewTrainsPage(
+            initialSource: source,
+            initialDestination: destination,
+            initialDate: selectedDate,
+          ),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginPage(),
+        ),
+      );
     }
   }
 
@@ -117,7 +137,7 @@ class SourceDestinationState extends State<SourceDestination> {
                   Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: _selectSource, // Open source selection
+                      onTap: _selectSource,
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
                         width: 140,
@@ -128,7 +148,7 @@ class SourceDestinationState extends State<SourceDestination> {
                         ),
                         child: Center(
                           child: Text(
-                            source, // Display selected source
+                            source,
                             style: const TextStyle(
                               color: Color(0xFF004B5F),
                               fontWeight: FontWeight.bold,
@@ -167,7 +187,7 @@ class SourceDestinationState extends State<SourceDestination> {
                   Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      onTap: _selectDestination, // Open destination selection
+                      onTap: _selectDestination,
                       borderRadius: BorderRadius.circular(10),
                       child: Container(
                         width: 140,
@@ -178,7 +198,7 @@ class SourceDestinationState extends State<SourceDestination> {
                         ),
                         child: Center(
                           child: Text(
-                            destination, // Display selected destination
+                            destination,
                             style: const TextStyle(
                               color: Color(0xFF004B5F),
                               fontWeight: FontWeight.bold,
@@ -213,7 +233,7 @@ class SourceDestinationState extends State<SourceDestination> {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
-                    _selectDate(context); // Open the calendar pop-up
+                    _selectDate(context);
                   },
                   borderRadius: BorderRadius.circular(10),
                   child: Container(
@@ -225,16 +245,14 @@ class SourceDestinationState extends State<SourceDestination> {
                     ),
                     child: Row(
                       children: [
-                        const SizedBox(
-                            width: 15), // Spacing between border and icon
+                        const SizedBox(width: 15),
                         const Icon(
-                          Icons.calendar_today, // Calendar icon
+                          Icons.calendar_today,
                           color: Color(0xFF004B5F),
                         ),
-                        const SizedBox(
-                            width: 15), // Spacing between icon and text
+                        const SizedBox(width: 15),
                         Text(
-                          selectedDate, // Display selected date
+                          selectedDate,
                           style: const TextStyle(
                             color: Color(0xFF004B5F),
                             fontWeight: FontWeight.bold,
@@ -255,25 +273,14 @@ class SourceDestinationState extends State<SourceDestination> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: _isFormValid
-                      ? () {
-                          // Navigate to SignUpPage when button is pressed
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SignUpPage(),
-                            ),
-                          );
-                        }
-                      : null, // Do nothing if form is not valid
+                  onTap: _isFormValid ? _handleBookNow : null,
                   borderRadius: BorderRadius.circular(50),
                   child: Container(
                     width: 319,
                     height: 70,
                     decoration: BoxDecoration(
-                      color: _isFormValid
-                          ? const Color(0xFF004B5F)
-                          : Colors.grey, // Change color based on validity
+                      color:
+                          _isFormValid ? const Color(0xFF004B5F) : Colors.grey,
                       borderRadius: BorderRadius.circular(50),
                     ),
                     child: const Center(

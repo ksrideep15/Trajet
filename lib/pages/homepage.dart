@@ -1,55 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:trajet/pages/background.dart';
+import 'package:trajet/pages/profilepage.dart';
 import 'package:trajet/widgets/appbar.dart';
 import 'package:trajet/widgets/sourcedestination.dart';
 import 'package:trajet/widgets/whychoseus.dart';
 import 'package:trajet/widgets/faq.dart';
+import 'package:trajet/services/authservice.dart';
 
-// Creates a stateful widget called Homepage
 class Homepage extends StatefulWidget {
-  // And below line defines a constructor to create an instance/object of the Homepage class
-  const Homepage({super.key});
+  final bool isLoggedIn;
+
+  const Homepage({super.key, required this.isLoggedIn});
 
   @override
-  // creates an instance of the HomepageState class
   HomepageState createState() => HomepageState();
 }
 
 class HomepageState extends State<Homepage> {
-  int _selectedIndex = 0; // counter for the bottom navigation bar
+  int _selectedIndex = 0;
+  bool _isLoggedIn = false;
+  final AuthService _authService = AuthService();
 
-  // A list of widgets for the bottom navigation bar
-  static const List<Widget> _widgetOptions = <Widget>[
-    HomeContent(),
-    Text('Status Page'),
-    Text('My Ticket Page'),
-    Text('My Profile Page'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
 
-  // logic for changing the bottom navigation bar
-  void _onItemTapped(int index) {
+  Future<void> _checkLoginStatus() async {
+    bool isLoggedIn = await _authService.isLoggedIn();
     setState(() {
-      _selectedIndex = index;
+      _isLoggedIn = isLoggedIn;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> widgetOptions = <Widget>[
+      HomeContent(isLoggedIn: _isLoggedIn),
+      const Text('Status Page'),
+      const Text('My Ticket Page'),
+      ProfilePage(),
+    ];
+
     return Scaffold(
-      // Use the custom app bar directly
       appBar: const TrajetAppBar(),
-      // Define the drawer for the scaffold
       drawer: const Drawer(
-        // Add content to the drawer if needed
         child: Center(
           child: Text('Drawer Content Here'),
         ),
       ),
-      // Body of the app
-      // Calls the widget based on the index of _widgetOptions
-      body: _widgetOptions.elementAt(_selectedIndex),
-
-      // Items of the bottom navigation bar
+      body: widgetOptions[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -69,40 +70,42 @@ class HomepageState extends State<Homepage> {
             label: 'My Profile',
           ),
         ],
-        // currentIndex is the current index of the bottom navigation bar
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.grey,
-        // Name of the unselected labels are not shown
         showSelectedLabels: true,
         showUnselectedLabels: false,
-        // Called when a bottom navigation bar item is pressed
-        onTap: _onItemTapped,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
       ),
     );
   }
 }
 
-// HomeContent widget
 class HomeContent extends StatelessWidget {
-  const HomeContent({super.key});
+  final bool isLoggedIn;
+
+  const HomeContent({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
-    return const Background(
+    return Background(
       child: SingleChildScrollView(
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SourceDestination(),
-                  SizedBox(height: 20),
-                  WhyChoseUs(),
-                  SizedBox(height: 20),
-                  FAQ(),
+                  SourceDestination(isLoggedIn: isLoggedIn),
+                  const SizedBox(height: 20),
+                  const WhyChoseUs(),
+                  const SizedBox(height: 20),
+                  const FAQ(),
                 ],
               ),
             ),
